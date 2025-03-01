@@ -14,10 +14,10 @@ class RegisterUserUseCaseImpl(
     private val roleRepository: RoleRepository,
     private val passwordEncoder: PasswordEncoder
 ) : RegisterUserUseCase {
-    override fun register(username: String, password: String, roles: List<String>): User {
+    override fun register(username: String, password: String, role: String): User {
         val encodedPassword = passwordEncoder.encode(password)
-        val roleObjects = roles.map { roleRepository.findByName(it) ?: throw RoleNameNotFoundException(it) }
-        val user = User(UUID.randomUUID(), username, encodedPassword, roleObjects.toMutableSet())
+        val roleObject = roleRepository.findByNameEqualsIgnoreCase(role) ?: throw RoleNameNotFoundException("Role not found")
+        val user = User(UUID.randomUUID(), username, encodedPassword, mutableSetOf(roleObject))
         userRepository.save(user)
         return user
     }

@@ -7,4 +7,5 @@ import java.util.UUID
 @Repository
 interface RoleRepository : JpaRepository<Role, UUID> {
     fun findByName(name: String): Role?
+    fun findByNameEqualsIgnoreCase(name: String): Role?
 }

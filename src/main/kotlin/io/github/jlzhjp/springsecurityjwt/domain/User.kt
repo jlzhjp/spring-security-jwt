@@ -6,12 +6,13 @@ import org.springframework.security.core.userdetails.UserDetails
 import java.util.UUID
 
 @Entity
+@Table(name = "users")
 class User(
     @Id
     var id: UUID = UUID.randomUUID(),
     @Column(unique = true)
-    var username: String,
-    var password: String,
+    private var username: String,
+    private var password: String,
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_role",
@@ -26,8 +27,16 @@ class User(
                     role.authorities.map { authority ->
                         SimpleGrantedAuthority(authority.name) } }
 
-    override fun getPassword() = password
+    fun setUsername(username: String) {
+        this.username = username
+    }
+
+    fun setPassword(password: String) {
+        this.password = password
+    }
+
     override fun getUsername() = username
+    override fun getPassword() = password
     override fun isAccountNonExpired() = true
     override fun isAccountNonLocked() = true
     override fun isCredentialsNonExpired() = true

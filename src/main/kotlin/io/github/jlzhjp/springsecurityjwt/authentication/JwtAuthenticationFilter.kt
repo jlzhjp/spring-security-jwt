@@ -11,8 +11,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
-@Component
-class JwtAuthenticationFilter(val authenticationManager: AuthenticationManager) : OncePerRequestFilter() {
+class JwtAuthenticationFilter(private val authenticationManager: AuthenticationManager) : OncePerRequestFilter() {
     private val authenticationDetailsSource = WebAuthenticationDetailsSource()
 
     override fun doFilterInternal(
