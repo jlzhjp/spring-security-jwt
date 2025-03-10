@@ -3,7 +3,7 @@ package io.github.jlzhjp.springsecurityjwt.domain
 import jakarta.persistence.*
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
-import java.util.UUID
+import java.util.*
 
 @Entity
 @Table(name = "users")
@@ -19,13 +19,17 @@ class User(
         joinColumns = [JoinColumn(name = "user_id")],
         inverseJoinColumns = [JoinColumn(name = "role_id")]
     )
-    var roles: MutableSet<Role> = mutableSetOf()
+    var roles: MutableSet<Role> = mutableSetOf(),
+    @OneToMany(mappedBy = "user")
+    var sessions: MutableList<Session> = mutableListOf()
 ) : UserDetails {
     override fun getAuthorities() =
         roles.map { SimpleGrantedAuthority("ROLE_${it.name.uppercase()}") } +
                 roles.flatMap { role ->
                     role.authorities.map { authority ->
-                        SimpleGrantedAuthority(authority.name) } }
+                        SimpleGrantedAuthority(authority.name)
+                    }
+                }
 
     fun setUsername(username: String) {
         this.username = username

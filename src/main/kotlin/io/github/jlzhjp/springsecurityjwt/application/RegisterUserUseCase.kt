@@ -1,7 +1,7 @@
 package io.github.jlzhjp.springsecurityjwt.application
 
-import io.github.jlzhjp.springsecurityjwt.domain.User
-
 interface RegisterUserUseCase {
-    fun register(username: String, password: String, role: String): User
+    data class RegisterResult(val accessToken: String, val refreshToken: String)
+
+    fun execute(username: String, password: String, role: String, userAgent: String): RegisterResult
 }

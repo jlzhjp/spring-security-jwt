@@ -1,41 +1,30 @@
 package io.github.jlzhjp.springsecurityjwt.config
 
-import io.github.jlzhjp.springsecurityjwt.domain.UserRepository
-import io.github.jlzhjp.springsecurityjwt.authentication.JwtAuthenticationFilter
-import io.github.jlzhjp.springsecurityjwt.authentication.JwtAuthenticationProvider
-import io.jsonwebtoken.Jwt
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.ProviderManager
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.authentication.HttpStatusEntryPoint
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfiguration {
-
     @Bean
     @Order(1)
-    fun tokenUrlSecurityFilterChain(http: HttpSecurity) : SecurityFilterChain {
+    fun refreshTokenSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http {
-            securityMatcher("/api/auth/token")
+            securityMatcher("/api/auth/token/refresh")
             authorizeHttpRequests { authorize(anyRequest, authenticated) }
             sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }
             csrf { disable() }
-            httpBasic { }
+            anonymous { disable() }
         }
 
         return http.build()
@@ -43,41 +32,36 @@ class SecurityConfiguration {
 
     @Bean
     @Order(2)
-    fun securityFilterChain(
-        http: HttpSecurity,
-        authenticationManager: AuthenticationManager,
-        userRepository: UserRepository) : SecurityFilterChain {
-
+    fun tokenUrlSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http {
+            securityMatcher("/api/auth/authorize")
+            authorizeHttpRequests { authorize(anyRequest, authenticated) }
             sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }
             csrf { disable() }
-            addFilterBefore<UsernamePasswordAuthenticationFilter>(JwtAuthenticationFilter(authenticationManager))
+            httpBasic { }
+            anonymous { disable() }
         }
 
         return http.build()
     }
 
     @Bean
-    fun userDetailsService(userRepository: UserRepository) : UserDetailsService {
-        return UserDetailsService { username: String ->
-            userRepository.findByUsername(username)
-                ?: throw UsernameNotFoundException("User not found")
+    @Order(3)
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+
+        http {
+            authorizeHttpRequests {
+                authorize("/api/auth/register", permitAll)
+                authorize("/api/auth/me", authenticated)
+            }
+            sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }
+            csrf { disable() }
+            anonymous { disable() }
+            exceptionHandling {
+                authenticationEntryPoint = HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
+            }
         }
+
+        return http.build()
     }
-
-    @Bean
-    fun passwordEncoder() = BCryptPasswordEncoder()
-
-    @Bean
-    fun authenticationManager(
-        userDetailsService: UserDetailsService,
-        userRepository: UserRepository,
-        passwordEncoder: PasswordEncoder): AuthenticationManager
-    = ProviderManager(listOf(
-        DaoAuthenticationProvider().apply {
-            setUserDetailsService(userDetailsService)
-            setPasswordEncoder(passwordEncoder)
-        },
-        JwtAuthenticationProvider(userRepository)
-    ))
 }

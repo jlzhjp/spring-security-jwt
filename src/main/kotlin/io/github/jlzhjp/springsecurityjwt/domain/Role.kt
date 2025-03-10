@@ -1,7 +1,7 @@
 package io.github.jlzhjp.springsecurityjwt.domain
 
 import jakarta.persistence.*
-import java.util.UUID
+import java.util.*
 
 @Entity
 class Role(
