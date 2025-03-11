@@ -18,6 +18,20 @@ function Layout() {
   const isAuthenticated = useBoundStore((state) => state.isAuthenticated);
   const logout = useBoundStore((state) => state.logout);
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Error logging out:", error);
+    } finally {
+      // Always perform client-side logout regardless of API call result
+      logout();
+    }
+  };
+
   return (
     <div className="container mx-auto">
       <header className="border-b">
@@ -44,7 +58,7 @@ function Layout() {
                 >
                   <UserGreeting />
                 </Suspense>
-                <Button variant="outline" onClick={logout}>
+                <Button variant="outline" onClick={handleLogout}>
                   Logout
                 </Button>
               </>
@@ -85,7 +99,7 @@ function Layout() {
                           <UserGreeting />
                         </span>
                       </Suspense>
-                      <Button variant="outline" onClick={logout}>
+                      <Button variant="outline" onClick={handleLogout}>
                         Logout
                       </Button>
                     </>

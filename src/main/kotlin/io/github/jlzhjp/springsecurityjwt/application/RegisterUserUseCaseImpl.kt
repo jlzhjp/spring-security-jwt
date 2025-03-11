@@ -20,7 +20,7 @@ class RegisterUserUseCaseImpl(
         password: String,
         role: String,
         userAgent: String
-    ): RegisterUserUseCase.RegisterResult {
+    ): RegisterResult {
 
         val encodedPassword = passwordEncoder.encode(password)
         val roleObject =
@@ -36,7 +36,7 @@ class RegisterUserUseCaseImpl(
 
         val token = jwtService.generateToken(user)
 
-        return RegisterUserUseCase.RegisterResult(
+        return RegisterResult(
             accessToken = token,
             refreshToken = session.id.toString()
         )

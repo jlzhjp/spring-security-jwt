@@ -56,7 +56,7 @@ export default function Login() {
       const basicAuth = btoa(`${values.username}:${values.password}`);
 
       // Send request to auth endpoint
-      const response = await fetch("/api/auth/token", {
+      const response = await fetch("/api/auth/authorize", {
         method: "POST",
         headers: {
           Authorization: `Basic ${basicAuth}`,
@@ -72,7 +72,7 @@ export default function Login() {
       const data = await response.json();
 
       // Store the token in our Zustand store
-      login(data.token);
+      login(data.accessToken);
 
       toast.success("Login successful", {
         description: "You have been successfully logged in.",

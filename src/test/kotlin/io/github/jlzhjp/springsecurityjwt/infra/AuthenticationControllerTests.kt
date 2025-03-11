@@ -1,13 +1,11 @@
 package io.github.jlzhjp.springsecurityjwt.infra
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.github.jlzhjp.springsecurityjwt.application.LoginUserUseCase
-import io.github.jlzhjp.springsecurityjwt.application.RefreshTokenUseCase
-import io.github.jlzhjp.springsecurityjwt.application.RegisterUserUseCase
+import io.github.jlzhjp.springsecurityjwt.application.*
 import io.github.jlzhjp.springsecurityjwt.authentication.AuthenticationConstants
 import io.github.jlzhjp.springsecurityjwt.authentication.JwtAuthentication
 import io.github.jlzhjp.springsecurityjwt.authentication.RefreshTokenAuthentication
-import io.github.jlzhjp.springsecurityjwt.config.SecurityConfiguration
+import io.github.jlzhjp.springsecurityjwt.config.*
 import io.github.jlzhjp.springsecurityjwt.domain.RoleNameNotFoundException
 import io.github.jlzhjp.springsecurityjwt.domain.Session
 import io.github.jlzhjp.springsecurityjwt.domain.User
@@ -20,10 +18,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.security.config.annotation.web.invoke
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.web.SecurityFilterChain
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
@@ -32,7 +35,6 @@ import java.util.*
 
 @ExtendWith(SpringExtension::class)
 @WebMvcTest(AuthenticationController::class)
-@Import(SecurityConfiguration::class)
 class AuthenticationControllerTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -50,13 +52,28 @@ class AuthenticationControllerTests {
     private lateinit var refreshTokenUseCase: RefreshTokenUseCase
 
     @TestConfiguration
-    class TestConfig {
+    @EnableWebSecurity
+    @EnableMethodSecurity
+    class AuthenticationControllerTestsConfiguration {
+        @Bean
+        fun refreshTokenUrlSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+            http.configureRefreshTokenUrlSecurity {  }
+            return http.build()
+        }
+        @Bean
+        fun authorizeUrlSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+            http.configureAuthorizeUrlSecurity {  }
+            return http.build()
+        }
+        @Bean
+        fun defaultSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+            http.configureDefaultSecurity {  }
+            return http.build()
+        }
         @Bean
         fun loginUserUseCase() = mockk<LoginUserUseCase>()
-
         @Bean
         fun registerUserUseCase() = mockk<RegisterUserUseCase>()
-
         @Bean
         fun refreshTokenUseCase() = mockk<RefreshTokenUseCase>()
     }
@@ -69,7 +86,7 @@ class AuthenticationControllerTests {
             role = "USER"
         )
 
-        val registerResult = RegisterUserUseCase.RegisterResult(
+        val registerResult = RegisterResult(
             accessToken = "access-token-123",
             refreshToken = "refresh-token-456"
         )
@@ -132,7 +149,7 @@ class AuthenticationControllerTests {
             roles = mutableSetOf()
         )
 
-        val result = LoginUserUseCase.LoginResult(
+        val result = LoginResult(
             accessToken = "new-access-token",
             refreshToken = "new-refresh-token"
         )

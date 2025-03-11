@@ -1,7 +1,7 @@
 package io.github.jlzhjp.springsecurityjwt.application
 
-interface LoginUserUseCase {
-    data class LoginResult(val accessToken: String, val refreshToken: String)
+data class LoginResult(val accessToken: String, val refreshToken: String)
 
+interface LoginUserUseCase {
     fun execute(username: String, userAgent: String): LoginResult
 }

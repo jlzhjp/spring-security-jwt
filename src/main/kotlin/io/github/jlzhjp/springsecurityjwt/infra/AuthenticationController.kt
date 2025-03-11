@@ -67,7 +67,7 @@ class AuthenticationController(
 
         val cookie = Cookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE, loginResult.refreshToken).apply {
             isHttpOnly = true
-            secure = true
+            secure = false
             path = "/api/auth"
         }
         httpServletResponse.addCookie(cookie)
@@ -121,5 +121,17 @@ class AuthenticationController(
                 username = principal.username
             )
         )
+    }
+
+    @PostMapping("/api/auth/logout")
+    fun logout(httpServletResponse: HttpServletResponse): ResponseEntity<Any> {
+        val cookie = Cookie(AuthenticationConstants.REFRESH_TOKEN_COOKIE, "").apply {
+            isHttpOnly = true
+            secure = false
+            path = "/api/auth"
+            maxAge = 0
+        }
+        httpServletResponse.addCookie(cookie)
+        return ResponseEntity.ok().build()
     }
 }

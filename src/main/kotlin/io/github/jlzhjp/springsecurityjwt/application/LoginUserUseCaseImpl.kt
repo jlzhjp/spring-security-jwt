@@ -12,14 +12,14 @@ class LoginUserUseCaseImpl(
 
     private val jwtService = JwtService()
 
-    override fun execute(username: String, userAgent: String): LoginUserUseCase.LoginResult {
+    override fun execute(username: String, userAgent: String): LoginResult {
         val user = userRepository.findByUsername(username) ?: throw UserNotFoundException("User not found")
         val userAgentInfo = UserAgentInfo(userAgent)
         val session = Session.create(user, userAgentInfo)
 
         sessionRepository.save(session)
 
-        return LoginUserUseCase.LoginResult(
+        return LoginResult(
             jwtService.generateToken(user),
             session.id.toString()
         )

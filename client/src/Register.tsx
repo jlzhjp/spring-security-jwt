@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import api from "./lib/fetcher";
+import useBoundStore from "./lib/store";
 
 const formSchema = z
   .object({
@@ -54,6 +55,7 @@ const formSchema = z
 export default function Register() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { login } = useBoundStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,7 +72,7 @@ export default function Register() {
 
     try {
       // Using our API utility with skipAuth since registration is public
-      await api.post(
+      const { accessToken } = await api.post(
         "/api/auth/register",
         {
           username: values.username,
@@ -80,10 +82,15 @@ export default function Register() {
         { skipAuth: true }
       );
 
+      // Store the token in the app state
+      login(accessToken);
+
       toast.success("Registration successful", {
-        description: "You've been registered successfully.",
+        description: "You've been registered and logged in successfully.",
       });
-      navigate("/login");
+
+      // Navigate to home/dashboard instead of login since user is now logged in
+      navigate("/");
     } catch (error) {
       toast.error("Registration failed", {
         description:
